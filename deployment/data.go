@@ -7,7 +7,7 @@ import (
 )
 
 type D struct {
-	t                testing.T
+	T                *testing.T
 	TerraformOptions terraform.Options
 	SubscriptionId   string
 	State            *TerraformState

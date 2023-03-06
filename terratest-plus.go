@@ -2,12 +2,14 @@ package terratestPlus
 
 import (
 	"os"
+	"os/user"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/mednax-it/terratest-plus/deployment"
 )
 
@@ -15,6 +17,7 @@ type SetupTerraformOptions struct {
 	TerraformDirectoryPath string `default:"src/"`
 	VarFileDirectoryPath   string `default:"vars/"`
 	BackendDirectoryPath   string `default:"backends/"`
+	Workspace              string
 }
 
 func defaultValues(o *SetupTerraformOptions) {
@@ -28,6 +31,11 @@ func defaultValues(o *SetupTerraformOptions) {
 
 	if o.BackendDirectoryPath == "" {
 		o.BackendDirectoryPath = getDefaultTag(*o, "BackendDirectoryPath")
+	}
+
+	if o.Workspace == "" {
+		user, _ := user.Current()
+		o.Workspace = strings.ReplaceAll(user.Name, " ", "")
 	}
 }
 
@@ -54,15 +62,17 @@ You can pass nil to [options] and it will set the defaults noted in the Readme.m
 You can set env variables that will be used for certain values. See Readme.md again.
 */
 func (d *Deployment) SetupTerraform(t *testing.T, options *SetupTerraformOptions) {
-
+	//save the Testing struct for use in various functions within
+	d.T = t
 	if options == nil {
 		options = new(SetupTerraformOptions)
 	}
 	defaultValues(options)
 
 	d.getTFSource(options)
-	d.getTFVars(t, options)
+	d.getTFVars(options)
 	d.getTFBackend(options)
+	//d.getTFWorkspace(options)
 
 	d.TerraformOptions = *terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// Set the path to the Terraform code that will be tested.
@@ -74,6 +84,20 @@ func (d *Deployment) SetupTerraform(t *testing.T, options *SetupTerraformOptions
 	})
 }
 
+func (d *Deployment) DeployInfrastructure() {
+
+	test_structure.RunTestStage(d.T, "terraform_init", func() {
+		if d.RunInit {
+			terraform.Init(d.T, &d.TerraformOptions)
+		}
+	})
+
+	test_structure.RunTestStage(d.T, "terraform_apply", func() {
+		terraform.WorkspaceSelectOrNew(d.T, &d.TerraformOptions, d.WorkspaceName)
+		terraform.Apply(d.T, &d.TerraformOptions)
+	})
+}
+
 func (d *Deployment) getTFSource(options *SetupTerraformOptions) {
 	if val, present := os.LookupEnv("TF_source_dir"); present {
 		d.TerraformSourceDir = val
@@ -82,7 +106,7 @@ func (d *Deployment) getTFSource(options *SetupTerraformOptions) {
 	}
 }
 
-func (d *Deployment) getTFVars(t *testing.T, options *SetupTerraformOptions) {
+func (d *Deployment) getTFVars(options *SetupTerraformOptions) {
 	if val, present := os.LookupEnv("TF_var_file"); present {
 		d.VarFilePath = val
 	} else {
@@ -94,7 +118,7 @@ func (d *Deployment) getTFVars(t *testing.T, options *SetupTerraformOptions) {
 		d.RunInit = true
 	}
 
-	terraform.GetAllVariablesFromVarFile(t, d.TerraformSourceDir+d.VarFilePath, &d.VarFileValues)
+	terraform.GetAllVariablesFromVarFile(d.T, d.TerraformSourceDir+d.VarFilePath, &d.VarFileValues)
 }
 
 func (d *Deployment) getTFBackend(options *SetupTerraformOptions) {
@@ -105,46 +129,33 @@ func (d *Deployment) getTFBackend(options *SetupTerraformOptions) {
 	}
 }
 
-// /*
-// GenerateOptions creates the Terraform Options struct with Default Retryable Errors.
+func (d *Deployment) getTFWorkspace(options *SetupTerraformOptions) {
+	if val, present := os.LookupEnv("TF_workspace"); present {
+		d.WorkspaceName = val
+	} else if val, present := os.LookupEnv("CIRCLE_SHA1"); present {
+		d.WorkspaceName = val
 
-// uses the `var_file` and `backend_config` environment variables to know which to use in the pipeline.
+	} else {
+		d.WorkspaceName = options.Workspace
+	}
 
-// If it cannot find the env variables (or they are not set) it will default to using `local.tfvars` and `config.test_backend.tfbackend`.
+	d.cleanWorkspaceName()
+}
 
-// (hint: local.tfvars is gitignored and only used for local testing. If the pipeline is failing because of this, make sure the env variables are set.)
-// */
-// func GenerateOptions(t *testing.T, terraformDirectory string) {
+/*
+	CleanWorkspaceName shortens the name to 7 characters and sets the env var and some display variables.
 
-// 	var_file := os.Getenv("var_file")
-// 	if var_file == "" {
-// 		// selecting the Test vars in local running terratest
-// 		// TODO: Instead of using a local tfvars hit the keyvault?
-// 		var_file = "./vars/local.tfvars"
-// 		runInit = true
-// 		ExecutingInLocal = true
-// 	}
-// 	//Saving for output variable
-// 	VarfilePath = var_file
-// 	getVarFileValues(t, var_file)
-// 	discoverNumberOfPlatforms(t)
+We do this here in the terratest wrapper so we it is only done in one place, and that place is along side other similar operations.
+*/
+func (d *Deployment) cleanWorkspaceName() {
+	if len(d.WorkspaceName) >= 7 {
+		d.WorkspaceName = d.WorkspaceName[0:7]
+	} else {
+		d.WorkspaceName += strings.Repeat("0", 7-len(d.WorkspaceName))
+	}
 
-// 	backend_file := os.Getenv("backend_config")
-// 	if backend_file == "" {
-// 		// for local testing, use the test backend
-// 		backend_file = "./backends/config.test_backend.tfbackend"
-// 	}
-
-// 	GeneralTerraformOptions = *terraform.WithDefaultRetryableErrors(t, &terraform.Options{
-// 		// Set the path to the Terraform code that will be tested.
-// 		TerraformDir: terraformDirectory,
-// 		VarFiles:     []string{var_file},
-// 		EnvVars:      map[string]string{"TF_PARAM_BACKEND_CONFIG_FILE": backend_file},
-// 		Parallelism:  10,
-// 		Logger:       logger.Discard,
-// 	})
-
-// }
+	//os.Setenv("TF_VAR_git_sha", d.WorkspaceName)
+}
 
 // /*
 // DiscoverNumberOfPlatforms consumes a varfile and reads in the 'platforms' list.
@@ -204,23 +215,6 @@ func (d *Deployment) getTFBackend(options *SetupTerraformOptions) {
 // 	KubeFiles = terraform.OutputMap(t, &GeneralTerraformOptions, "kube_files")
 // 	SubscriptionId = terraform.Output(t, &GeneralTerraformOptions, "subscription_id")
 
-// }
-
-// /*
-// 	CleanWorkspaceName shortens the name to 7 characters and sets the env var and some display variables.
-
-// We do this here in the terratest wrapper so we it is only done in one place, and that place is along side other similar operations.
-// */
-// func cleanWorkspaceName(workspace string) string {
-// 	if len(workspace) >= 7 {
-// 		workspace = workspace[0:7]
-// 	} else {
-// 		workspace += strings.Repeat("x", 7-len(workspace))
-// 	}
-
-// 	WorkspaceName = workspace
-// 	os.Setenv("TF_VAR_git_sha", workspace)
-// 	return workspace
 // }
 
 // /*
