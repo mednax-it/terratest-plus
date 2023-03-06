@@ -9,14 +9,16 @@ import (
 type D struct {
 	t                testing.T
 	TerraformOptions terraform.Options
+	SubscriptionId   string
 	State            *TerraformState
 	RawState         map[string]interface{}
-	SubscriptionId   string
+	VarFileValues    map[string]interface{}
 
-	VarFileValues map[string]interface{}
-
-	RunInit          bool
-	ExecutingInLocal bool
-	WorkspaceName    string
-	VarFilePath      string
+	// Reference variables for display and output primarily
+	RunInit            bool
+	ExecutingInLocal   bool
+	WorkspaceName      string
+	VarFilePath        string
+	BackendFilePath    string
+	TerraformSourceDir string
 }

@@ -6,12 +6,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/mednax-it/terratest-plus/deployment"
 )
 
 type SetupTerraformOptions struct {
-	TerraformDirectoryPath string `default:"..src/"`
+	TerraformDirectoryPath string `default:"src/"`
 	VarFileDirectoryPath   string `default:"vars/"`
 	BackendDirectoryPath   string `default:"backends/"`
 }
@@ -43,6 +44,7 @@ func getDefaultTag(o SetupTerraformOptions, property string) string {
 
 type Deployment struct {
 	deployment.D
+	backend string
 }
 
 /*
@@ -59,6 +61,29 @@ func (d *Deployment) SetupTerraform(t *testing.T, options *SetupTerraformOptions
 	}
 	defaultValues(options)
 
+	d.getTFSource(options)
+	d.getTFVars(t, options)
+	d.getTFBackend(options)
+
+	d.TerraformOptions = *terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+		// Set the path to the Terraform code that will be tested.
+		TerraformDir: d.TerraformSourceDir,
+		VarFiles:     []string{d.VarFilePath},
+		EnvVars:      map[string]string{"TF_PARAM_BACKEND_CONFIG_FILE": d.BackendFilePath},
+		Parallelism:  10,
+		Logger:       logger.Discard,
+	})
+}
+
+func (d *Deployment) getTFSource(options *SetupTerraformOptions) {
+	if val, present := os.LookupEnv("TF_source_dir"); present {
+		d.TerraformSourceDir = val
+	} else {
+		d.TerraformSourceDir = options.TerraformDirectoryPath
+	}
+}
+
+func (d *Deployment) getTFVars(t *testing.T, options *SetupTerraformOptions) {
 	if val, present := os.LookupEnv("TF_var_file"); present {
 		d.VarFilePath = val
 	} else {
@@ -70,23 +95,16 @@ func (d *Deployment) SetupTerraform(t *testing.T, options *SetupTerraformOptions
 		d.RunInit = true
 	}
 
-	terraform.GetAllVariablesFromVarFile(t, d.VarFilePath, &d.VarFileValues)
-
+	terraform.GetAllVariablesFromVarFile(t, d.TerraformSourceDir+d.VarFilePath, &d.VarFileValues)
 }
 
-// func getVarFileValues(t *testing.T, tfVarFile string) {
-
-// 	switch char := string(tfVarFile[0]); char {
-// 	case ".":
-// 		tfVarFile = "../src" + tfVarFile[1:]
-// 	case "/":
-// 		tfVarFile = "../src" + tfVarFile
-// 	default:
-// 		tfVarFile = "../src/" + tfVarFile
-// 	}
-
-// 	terraform.GetAllVariablesFromVarFile(t, tfVarFile, &varFileValues)
-// }
+func (d *Deployment) getTFBackend(options *SetupTerraformOptions) {
+	if val, present := os.LookupEnv("TF_backend"); present {
+		d.VarFilePath = val
+	} else {
+		d.backend = options.BackendDirectoryPath + "config.test_backend.tfbackend"
+	}
+}
 
 // /*
 // GenerateOptions creates the Terraform Options struct with Default Retryable Errors.
