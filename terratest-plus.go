@@ -44,7 +44,6 @@ func getDefaultTag(o SetupTerraformOptions, property string) string {
 
 type Deployment struct {
 	deployment.D
-	backend string
 }
 
 /*
@@ -100,9 +99,9 @@ func (d *Deployment) getTFVars(t *testing.T, options *SetupTerraformOptions) {
 
 func (d *Deployment) getTFBackend(options *SetupTerraformOptions) {
 	if val, present := os.LookupEnv("TF_backend"); present {
-		d.VarFilePath = val
+		d.BackendFilePath = val
 	} else {
-		d.backend = options.BackendDirectoryPath + "config.test_backend.tfbackend"
+		d.BackendFilePath = options.BackendDirectoryPath + "config.test_backend.tfbackend"
 	}
 }
 

@@ -14,7 +14,7 @@ func TestPassNilForOptionsCreatesDefault(t *testing.T) {
 
 	testStruct.SetupTerraform(t, nil)
 
-	assert.Equal(expectedPath, testStruct.VarFilePath, "Nill Options passed to SetupTerraform did not result in default Options")
+	assert.Equal(expectedPath, testStruct.VarFilePath, "Nill Options passed to SetupTerraform did not result in default VarFilePath")
 }
 
 func TestSetupTerraformSetsLocalVarsWithNoInformationToStart(t *testing.T) {
@@ -98,4 +98,43 @@ func TestDefaultVarFileOfLocalForcesExecuteInLocalFlagTrue(t *testing.T) {
 	testStruct.SetupTerraform(t, nil)
 
 	assert.True(testStruct.ExecutingInLocal)
+}
+
+func TestBackendPathWhenNilOptionsDefaults(t *testing.T) {
+	assert := assert.New(t)
+	testStruct := new(Deployment)
+	expectedPath := "backends/config.test_backend.tfbackend"
+
+	testStruct.SetupTerraform(t, nil)
+
+	assert.Equal(expectedPath, testStruct.BackendFilePath, "Nill Options passed to SetupTerraform did not result in default BackendPath")
+
+}
+
+func TestBackendPathWhenProvidedBlankOptionsDefaults(t *testing.T) {
+	assert := assert.New(t)
+	testStruct := new(Deployment)
+	expectedPath := "backends/config.test_backend.tfbackend"
+	options := new(SetupTerraformOptions)
+
+	testStruct.SetupTerraform(t, options)
+
+	assert.Equal(expectedPath, testStruct.BackendFilePath, "Blank Options passed to SetupTerraform did not result in default BackendPath")
+
+}
+
+func TestBackendWhenSetByEnvVariable(t *testing.T) {
+	assert := assert.New(t)
+	expectedPath := "backends/config.test_backend.tfbackend"
+	os.Setenv("TF_backend", expectedPath)
+	defer os.Unsetenv("TF_backend")
+
+	testStruct := new(Deployment)
+	options := new(SetupTerraformOptions)
+	options.BackendDirectoryPath = "backend2/"
+
+	testStruct.SetupTerraform(t, options)
+
+	assert.Equalf(expectedPath, testStruct.BackendFilePath, "BackendPath of %s did not follow env value of  %s ", testStruct.VarFilePath, expectedPath)
+
 }
