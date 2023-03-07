@@ -204,3 +204,5 @@ func TestGetInstanceAttributeValuesReturnsAttributes(t *testing.T) {
 	assert.Containsf(foundAttributes, TestAttributeValueTwo, "The found attributes do not contain the expected one")
 
 }
+
+// Go does not have a default "Expect Fail" option, so I would love a test right here that Tests the FailNow of the function above but alas, it isnt possible with default
