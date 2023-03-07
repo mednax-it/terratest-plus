@@ -56,6 +56,7 @@ func getDefaultTag(o SetupTerraformOptions, property string) string {
 
 type Deployment struct {
 	deployment.D
+	Cleanup bool
 }
 
 /*
@@ -156,6 +157,40 @@ func (d *Deployment) TeardownTerraform() {
 	// Clean up resources with "terraform destroy" at the end of the test.
 	terraform.Destroy(d.T, &d.TerraformOptions)
 
+}
+
+func (d *Deployment) Cleanup() {
+	if r := recover(); r != nil {
+		logger.Log(d.T, "\n\n\033[91m>>> Catastrophic Error (Panic!). <<<\033[0m\n\n")
+		logger.Log(d.T, r)
+		cleanup = true
+	}
+
+	if d.T.Failed() && !d.ExecutingInLocal {
+		logger.Log(d.T, "\n\n\033[91m>>> One or more Tests failed. <<<\033[0m\n\n")
+		cleanup = true
+	}
+
+	if d.ExecutingInLocal {
+		logger.Logf(t, "\n\n\033[93m>>> Local Testing - Env Left in place. Use the following when finished: \033[0m\n\n\t$ terraform workspace select %s\n\t$ terraform destroy -var-file=%s\n\t$ terraform workspace select default\n\t$ terraform workspace delete %s\n\n", wrapper.WorkspaceName, wrapper.VarfilePath, wrapper.WorkspaceName)
+
+	}
+
+	test_structure.RunTestStage(d.T, "terraform_destroy", func() {
+		if cleanup {
+			logger.Log(t, "\n\n>>> Cleaning up after failure in testing ... <<< \n\n")
+			wrapper.TeardownTerraform(t, "../src")
+		}
+	})
+}
+
+/* RunTests takes a map of test functions and runs them through go GoRoutines
+ */
+func (d *Deployment) RunTests(dispatch map[string]func(t *testing.T)) {
+
+	for name, testCommand := range dispatch {
+		d.T.Run(name, testCommand)
+	}
 }
 
 /* GetTFSource checks the env variable TF_source_dir first, then uses the values from the passed in options
