@@ -13,6 +13,7 @@ type D struct {
 	State            *TerraformState
 	RawState         map[string]interface{}
 	VarFileValues    map[string]interface{}
+	OutputValues     map[string]interface{}
 
 	// Reference variables for display and output primarily
 	RunInit            bool

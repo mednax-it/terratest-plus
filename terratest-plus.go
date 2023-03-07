@@ -56,7 +56,7 @@ func getDefaultTag(o SetupTerraformOptions, property string) string {
 
 type Deployment struct {
 	deployment.D
-	Cleanup bool
+	performCleanup bool
 }
 
 /*
@@ -110,6 +110,7 @@ func (d *Deployment) DeployInfrastructure() {
 	})
 
 	d.GetState()
+	d.getOutputValues()
 }
 
 /*
@@ -159,27 +160,36 @@ func (d *Deployment) TeardownTerraform() {
 
 }
 
+/*
+	Clean up is a function to be defered and catch the end state of the testing, to determine what needs to be cleaned up.
+
+If a panic occurs, the infrastructure will be destroyed.
+
+if the testing fails and it is NOT being executed in the local (ie local iterative testing) then the infrastructure will be destroyed.
+
+If SKIP_terraform_destroy env variable is set, even if the the above qualifiers occur for a destruction, it will not do so.
+*/
 func (d *Deployment) Cleanup() {
 	if r := recover(); r != nil {
 		logger.Log(d.T, "\n\n\033[91m>>> Catastrophic Error (Panic!). <<<\033[0m\n\n")
 		logger.Log(d.T, r)
-		cleanup = true
+		d.performCleanup = true
 	}
 
 	if d.T.Failed() && !d.ExecutingInLocal {
 		logger.Log(d.T, "\n\n\033[91m>>> One or more Tests failed. <<<\033[0m\n\n")
-		cleanup = true
+		d.performCleanup = true
 	}
 
 	if d.ExecutingInLocal {
-		logger.Logf(t, "\n\n\033[93m>>> Local Testing - Env Left in place. Use the following when finished: \033[0m\n\n\t$ terraform workspace select %s\n\t$ terraform destroy -var-file=%s\n\t$ terraform workspace select default\n\t$ terraform workspace delete %s\n\n", wrapper.WorkspaceName, wrapper.VarfilePath, wrapper.WorkspaceName)
+		logger.Logf(d.T, "\n\n\033[93m>>> Local Testing - Env Left in place. Use the following when finished: \033[0m\n\n\t$ terraform workspace select %s\n\t$ terraform destroy -var-file=%s\n\t$ terraform workspace select default\n\t$ terraform workspace delete %s\n\n", wrapper.WorkspaceName, wrapper.VarfilePath, wrapper.WorkspaceName)
 
 	}
 
 	test_structure.RunTestStage(d.T, "terraform_destroy", func() {
-		if cleanup {
-			logger.Log(t, "\n\n>>> Cleaning up after failure in testing ... <<< \n\n")
-			wrapper.TeardownTerraform(t, "../src")
+		if d.performCleanup {
+			logger.Log(d.T, "\n\n>>> Cleaning up after failure in testing ... <<< \n\n")
+			d.TeardownTerraform()
 		}
 	})
 }
@@ -267,6 +277,17 @@ func (d *Deployment) getTFWorkspace(options *SetupTerraformOptions) {
 }
 
 /*
+	GetOutputValues stores the outputs of the Terraform in a map.
+
+Must be called after terraform apply has been run.
+
+As such it is called automatically as part of the DeployInfrastructure
+*/
+func (d *Deployment) getOutputValues() {
+	d.OutputValues = terraform.OutputAll(d.T, &d.TerraformOptions)
+}
+
+/*
 	CleanWorkspaceName shortens the name to 7 characters and sets the env var and some display variables.
 
 We do this here in the terratest wrapper so we it is only done in one place, and that place is along side other similar operations.
@@ -278,80 +299,4 @@ func (d *Deployment) cleanWorkspaceName() {
 		d.WorkspaceName += strings.Repeat("0", 7-len(d.WorkspaceName))
 	}
 
-	//os.Setenv("TF_VAR_git_sha", d.WorkspaceName)
 }
-
-// /*
-// DiscoverNumberOfPlatforms consumes a varfile and reads in the 'platforms' list.
-// It sets the NumberOfPlatforms variable to that value.
-// */
-// func discoverNumberOfPlatforms(t *testing.T) {
-
-// 	NumberOfPlatforms = len(varFileValues["platforms"].([]interface{}))
-
-// }
-
-// /*
-// 	SetupTerraform accepts a testing struct and the path to the directory where the terraform main.tf is.
-
-// It will run Init if in the local environment, but in the pipeline (assuming all env variables were correctly set) it will skip for time as that was run in an early CircleCIJob.
-
-// It will switch to the workspace found in TF_VAR_git_sha or CIRCLE_SHA1, prioritizing TF_VAR_git_sha and trim/fill it to 7 characters.
-
-// if it cannot find either of these values, it will look in the tfvars file for a git_sha variable.
-
-// if it cannot find one there, it will default to the username of the workspace running this test.
-
-// Note: this means that if you do not set git_sha in the tfvars file and you are using docker to run tests, they will be run in the `rootxxx` workspace, which will overwrite other peoples work who are doing the same.
-
-// To prevent this, all thats needed is a unique git_sha variable in the tfvars file.
-
-// This respects path conventions, such as "../terraform/aks" to go back up one directory.
-// */
-// func SetupTerraform(t *testing.T, terraformDirectory string) {
-
-// 	if runInit { // this is only set True if the local.tfvars is used, so its entirely for local testing.
-// 		terraform.Init(t, &GeneralTerraformOptions)
-// 	}
-
-// 	workspace := os.Getenv("TF_VAR_git_sha")
-// 	sha := os.Getenv("CIRCLE_SHA1")
-// 	if workspace == "" && sha == "" {
-
-// 		workspace = setLocalWorkspace()
-
-// 	}
-// 	if sha != "" {
-// 		workspace = sha
-// 	}
-// 	workspace = cleanWorkspaceName(workspace)
-
-// 	// Run Terraform Apply - Can be skipped by setting the env var `SKIP_terraform_apply=true` in order to speed up local testing
-// 	test_structure.RunTestStage(t, "terraform_apply", func() {
-// 		terraform.WorkspaceSelectOrNew(t, &GeneralTerraformOptions, workspace)
-
-// 		terraform.Apply(t, &GeneralTerraformOptions)
-// 	})
-
-// 	GetState(t)
-// 	GetPlatformDetails(terraform.OutputMapOfObjects(t, &GeneralTerraformOptions, "platform_values"))
-
-// 	KubeFiles = terraform.OutputMap(t, &GeneralTerraformOptions, "kube_files")
-// 	SubscriptionId = terraform.Output(t, &GeneralTerraformOptions, "subscription_id")
-
-// }
-
-// /* GetPlatformDetails casts the map of maps of strings into a map of SinglePlatformDetails structs.
-//  */
-// func GetPlatformDetails(output map[string]interface{}) {
-// 	for region, singlePlatform := range output {
-// 		val := singlePlatform.(map[string]interface{})
-// 		PlatformDetails[region] = SinglePlatformDetail{
-// 			Context:                val["kube_context"].(string),
-// 			ApplicationGatewayName: val["application_gateway_name"].(string),
-// 			PublicIp:               val["public_ip"].(string),
-// 			ResourceGroupName:      val["resource_group_name"].(string),
-// 			IdentityId:             val["identity_id"].(string),
-// 			IdentityClientId:       val["identity_client_id"].(string)}
-// 	}
-// }
