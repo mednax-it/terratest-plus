@@ -203,6 +203,16 @@ func (d *Deployment) RunTests(dispatch map[string]func(t *testing.T)) {
 	}
 }
 
+func (d *Deployment) RunTestStage(stageName string, dispatch map[string]func(t *testing.T), optionalDescription *string) {
+	test_structure.RunTestStage(d.T, stageName, func() {
+		logger.Logf(d.T, "\n========== %s Tests  ==========\n\n", stageName)
+		if optionalDescription != nil {
+			logger.Logf(d.T, "\n\t%s", *optionalDescription)
+		}
+		d.RunTests(dispatch)
+	})
+}
+
 /* GetTFSource checks the env variable TF_source_dir first, then uses the values from the passed in options
  */
 func (d *Deployment) getTFSource(options *SetupTerraformOptions) {
