@@ -84,6 +84,13 @@ func (d *Deployment) SetupTerraform(t *testing.T, options *SetupTerraformOptions
 	})
 }
 
+/*
+	DeployInfrastructure will perform Terraform Init and Terraform Apply with the options that were set in SetupTerraform
+
+Init is controlled by both the RunInit flag and the Test Structure Stage variable SKIP_terraformin_init
+
+Apply is controlled by the Test Structure Stage variable SKIP_terraform_apply
+*/
 func (d *Deployment) DeployInfrastructure() {
 
 	test_structure.RunTestStage(d.T, "terraform_init", func() {
@@ -98,6 +105,8 @@ func (d *Deployment) DeployInfrastructure() {
 	})
 }
 
+/* GetTFSource checks the env variable TF_source_dir first, then uses the values from the passed in options
+ */
 func (d *Deployment) getTFSource(options *SetupTerraformOptions) {
 	if val, present := os.LookupEnv("TF_source_dir"); present {
 		d.TerraformSourceDir = val
@@ -106,11 +115,22 @@ func (d *Deployment) getTFSource(options *SetupTerraformOptions) {
 	}
 }
 
+/*
+	GetTFVars looks for the env variable TF_var_file first then takes from the options.
+
+# If the options contains a full path (ending in .tfvars) then it takes it as is, else it defaults to local.tfvars
+
+If the Varfile name contains the word 'local' it also sets the ExecutingInLocal and RunInit bools to true.
+*/
 func (d *Deployment) getTFVars(options *SetupTerraformOptions) {
 	if val, present := os.LookupEnv("TF_var_file"); present {
 		d.VarFilePath = val
 	} else {
-		d.VarFilePath = options.VarFileDirectoryPath + "local.tfvars"
+		if strings.Contains(options.VarFileDirectoryPath, ".tfvars") {
+			d.VarFilePath = options.VarFileDirectoryPath
+		} else {
+			d.VarFilePath = options.VarFileDirectoryPath + "local.tfvars"
+		}
 	}
 
 	if strings.Contains(d.VarFilePath, "local") {
@@ -121,14 +141,30 @@ func (d *Deployment) getTFVars(options *SetupTerraformOptions) {
 	terraform.GetAllVariablesFromVarFile(d.T, d.TerraformSourceDir+d.VarFilePath, &d.VarFileValues)
 }
 
+/*
+	GetTFBackend looks for the env variablle TF_backend first, then takes from the options.
+
+If the passed in options contains the word ".tfbackend" as a full path then it is used as is.
+Otherwise it defaults to `config.test_backend.tfbackend`
+*/
 func (d *Deployment) getTFBackend(options *SetupTerraformOptions) {
 	if val, present := os.LookupEnv("TF_backend"); present {
 		d.BackendFilePath = val
 	} else {
-		d.BackendFilePath = options.BackendDirectoryPath + "config.test_backend.tfbackend"
+		if strings.Contains(options.BackendDirectoryPath, ".tfbackend") {
+			d.BackendFilePath = options.BackendDirectoryPath
+		} else {
+			d.BackendFilePath = options.BackendDirectoryPath + "config.test_backend.tfbackend"
+		}
+
 	}
 }
 
+/*
+	GetTFWorkspace looks for the env variable TF_workspace first, then the CIRCLE_SHA, then takes the passed workspace name.
+
+It sets all of them to 7 characters, either cutting it down or adding 0s.
+*/
 func (d *Deployment) getTFWorkspace(options *SetupTerraformOptions) {
 	if val, present := os.LookupEnv("TF_workspace"); present {
 		d.WorkspaceName = val
