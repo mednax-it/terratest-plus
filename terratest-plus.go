@@ -2,6 +2,7 @@ package terratestPlus
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"os/user"
 	"reflect"
@@ -132,14 +133,14 @@ func (d *Deployment) GetState() {
 	tf_get_state = strings.ReplaceAll(tf_get_state, "\"]", "]")
 
 	if err != nil {
-		logger.Logf(d.T, "Error pulling State file: %w", err)
+		logger.Logf(d.T, "Error pulling State file: %s", errors.Unwrap(err))
 		assert.FailNow(d.T, "State File was not able to be pulled - tests cannot run.")
 	}
 	json.Unmarshal([]byte(tf_get_state), &d.RawState)
 	_, err = marshmallow.Unmarshal([]byte(tf_get_state), &d.State)
 
 	if err != nil {
-		logger.Logf(d.T, "Error building State Map: %w", err)
+		logger.Logf(d.T, "Error building State Map: %s", errors.Unwrap(err))
 		assert.FailNow(d.T, "Could not build map of State File - Tests cannot run.")
 	}
 
