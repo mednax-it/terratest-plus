@@ -13,6 +13,8 @@ var TestNameOne string = "testNameOne"
 var TestNameTwo string = "testNameButDifferent"
 var TestAttributeName string = "AttributeName"
 var TestAttributeNameTwo string = "AttributeNameAsWell"
+var TestAttributeValue string = "TestAttributeValue"
+var TestAttributeValueTwo string = "TestAttributeValueTwo"
 
 func SetupMockState() *deployment.TerraformState {
 	tags := map[string]interface{}{
@@ -63,6 +65,26 @@ func SetupMockState() *deployment.TerraformState {
 	return &state
 }
 
+func SetupMockRawState() map[string]interface{} {
+	rawMockAttributes := map[string]interface{}{
+		TestAttributeName:    TestAttributeValue,
+		TestAttributeNameTwo: TestAttributeValueTwo,
+	}
+	rawMockInstance := map[string]interface{}{
+		"attributes": rawMockAttributes,
+	}
+	rawMockResource := map[string]interface{}{
+		"module":    TestModule,
+		"type":      TestTypeOne,
+		"name":      TestNameOne,
+		"instances": []interface{}{rawMockInstance, rawMockInstance},
+	}
+	rawMockState := map[string]interface{}{
+		"resources": []interface{}{rawMockResource},
+	}
+	return rawMockState
+}
+
 func TestFindAllResourceTypeFindsTheAppropriateResources(t *testing.T) {
 	assert := assert.New(t)
 	testStruct := new(Deployment)
@@ -103,10 +125,10 @@ func TestFindByNameBuildsKeysBasedOnResourceData(t *testing.T) {
 	assert := assert.New(t)
 	testStruct := new(Deployment)
 	testStruct.State = SetupMockState()
+	keyShouldBe := TestModule + "." + TestTypeOne + "." + TestNameOne
 
 	foundResources := testStruct.FindByName(TestNameOne)
 
-	keyShouldBe := TestModule + "." + TestTypeOne + "." + TestNameOne
 	_, found := foundResources[keyShouldBe]
 	assert.True(found, "Key [%s] was not found in the output", keyShouldBe)
 
@@ -146,4 +168,39 @@ func TestCompileAllRegexGroups(t *testing.T) {
 	parameterMap := CompileAllRegexGroups(regexString, stringToMatch)
 
 	assert.Equalf(expectedPlatformID, parameterMap["platform_id"], "The value for [platform_id] was %s and did not match expected %s", parameterMap["platform_id"], expectedPlatformID)
+}
+
+func TestGetInstanceAttributeValuesOfResourceReturnsAsExpectedAmmountWithResourceType(t *testing.T) {
+	assert := assert.New(t)
+	testStruct := new(Deployment)
+	testStruct.RawState = SetupMockRawState()
+	expectedLength := 2
+
+	foundAttributes := testStruct.GetInstanceAttributeValuesOfResource(TestTypeOne, TestAttributeNameTwo)
+
+	assert.Equalf(expectedLength, len(foundAttributes), "The length of returned value (%s) was longer than expected %s", len(foundAttributes), expectedLength)
+
+}
+
+func TestGetInstanceAttributeValuesOfResourceReturnsAsExpectedAmmountWithResourceName(t *testing.T) {
+	assert := assert.New(t)
+	testStruct := new(Deployment)
+	testStruct.RawState = SetupMockRawState()
+	expectedLength := 2
+
+	foundAttributes := testStruct.GetInstanceAttributeValuesOfResource(TestNameOne, TestAttributeNameTwo)
+
+	assert.Equalf(expectedLength, len(foundAttributes), "The length of returned value (%s) was longer than expected %s", len(foundAttributes), expectedLength)
+
+}
+
+func TestGetInstanceAttributeValuesReturnsAttributes(t *testing.T) {
+	assert := assert.New(t)
+	testStruct := new(Deployment)
+	testStruct.RawState = SetupMockRawState()
+
+	foundAttributes := testStruct.GetInstanceAttributeValuesOfResource(TestNameOne, TestAttributeNameTwo)
+
+	assert.Containsf(foundAttributes, TestAttributeValueTwo, "The found attributes do not contain the expected one")
+
 }
