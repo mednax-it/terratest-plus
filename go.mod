@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/gruntwork-io/terratest v0.41.12
+	github.com/perimeterx/marshmallow v1.1.4
 	github.com/stretchr/testify v1.8.2
 )
 
@@ -45,8 +46,10 @@ require (
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/jinzhu/copier v0.3.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/klauspost/compress v1.16.0 // indirect
+	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-zglob v0.0.4 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect

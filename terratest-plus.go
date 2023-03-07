@@ -1,6 +1,7 @@
 package terratestPlus
 
 import (
+	"encoding/json"
 	"os"
 	"os/user"
 	"reflect"
@@ -11,6 +12,8 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/mednax-it/terratest-plus/deployment"
+	"github.com/perimeterx/marshmallow"
+	"github.com/stretchr/testify/assert"
 )
 
 type SetupTerraformOptions struct {
@@ -103,6 +106,55 @@ func (d *Deployment) DeployInfrastructure() {
 		terraform.WorkspaceSelectOrNew(d.T, &d.TerraformOptions, d.WorkspaceName)
 		terraform.Apply(d.T, &d.TerraformOptions)
 	})
+
+	d.GetState()
+}
+
+/*
+GetState calls the `terraform state pull` command and retrieves the current state file.
+
+This should be run after Apply.
+
+This allows for a map for use in testing certain situations.
+
+GetState sets the State struct var for use in various tests, as well as the RawState var.
+
+GetState should not need to be used in General Testing but is provided exposed just in case. Instead use the helper functions found in wrapper/state.go.
+
+Note: in order to make matching to a Struct easier, the terraform module names (which are usually like `["name"]` ) have been cleaned to just `[name]`.
+*/
+func (d *Deployment) GetState() {
+	tf_get_state, err := terraform.RunTerraformCommandAndGetStdoutE(d.T, &d.TerraformOptions, "state", "pull")
+
+	tf_get_state = strings.ReplaceAll(tf_get_state, "\n", "")
+	tf_get_state = strings.ReplaceAll(tf_get_state, "\\", "")
+	tf_get_state = strings.ReplaceAll(tf_get_state, "[\"", "[")
+	tf_get_state = strings.ReplaceAll(tf_get_state, "\"]", "]")
+
+	if err != nil {
+		logger.Logf(d.T, "Error pulling State file: %w", err)
+		assert.FailNow(d.T, "State File was not able to be pulled - tests cannot run.")
+	}
+	json.Unmarshal([]byte(tf_get_state), &d.RawState)
+	_, err = marshmallow.Unmarshal([]byte(tf_get_state), &d.State)
+
+	if err != nil {
+		logger.Logf(d.T, "Error building State Map: %w", err)
+		assert.FailNow(d.T, "Could not build map of State File - Tests cannot run.")
+	}
+
+}
+
+/*
+TeardownTerraform accepts a testing struct and the path to the directory where the terraform main.tf is to then Destroy.
+
+This respects path conventions, such as "../terraform/aks" to go back up one.
+*/
+func (d *Deployment) TeardownTerraform() {
+
+	// Clean up resources with "terraform destroy" at the end of the test.
+	terraform.Destroy(d.T, &d.TerraformOptions)
+
 }
 
 /* GetTFSource checks the env variable TF_source_dir first, then uses the values from the passed in options
@@ -253,30 +305,6 @@ func (d *Deployment) cleanWorkspaceName() {
 
 // }
 
-// /*
-// SetLocalWorkspace will be called if the TF_VAR_git_sha or the circle context of CIRCLE_SHA1 variable is not already set (as it will in the pipeline).
-
-// It will attempt first to get the workspace name from the `git_sha` variable in the tfvars file.
-
-// Failing to find that it will use the username in local.
-
-// *NOTE!!* If running terratest in a docker, the username will always be root - so the gitsha (pushed to 7 chars) will be rootxxx.
-// If multiple devs do not set the git_sha variable in the local.tfvars it will cause them to overwrite each others remote states!.
-// */
-// func setLocalWorkspace() string {
-
-// 	var workspace string
-// 	if varFileWorkspace, ok := varFileValues["git_sha"]; ok {
-// 		workspace = varFileWorkspace.(string)
-
-// 	} else {
-// 		user, _ := user.Current()
-// 		workspace = strings.ReplaceAll(user.Name, " ", "")
-// 	}
-
-// 	return workspace
-// }
-
 // /* GetPlatformDetails casts the map of maps of strings into a map of SinglePlatformDetails structs.
 //  */
 // func GetPlatformDetails(output map[string]interface{}) {
@@ -290,50 +318,4 @@ func (d *Deployment) cleanWorkspaceName() {
 // 			IdentityId:             val["identity_id"].(string),
 // 			IdentityClientId:       val["identity_client_id"].(string)}
 // 	}
-// }
-
-// /*
-// GetState calls the `terraform state pull` command and retrieves the current state file.
-
-// This should be run after Apply.
-
-// This allows for a map for use in testing certain situations.
-
-// GetState sets the State global var for use in various tests.
-
-// GetState should not need to be used in General Testing but is provided exposed just in case. Instead use the helper functions found in wrapper/state.go.
-
-// Note: in order to make matching to a Struct easier, the terraform module names (which are usually like `["name"]` ) have been cleaned to just `[name]`.
-// */
-// func GetState(t *testing.T) {
-// 	tf_get_state, err := terraform.RunTerraformCommandAndGetStdoutE(t, &GeneralTerraformOptions, "state", "pull")
-
-// 	tf_get_state = strings.ReplaceAll(tf_get_state, "\n", "")
-// 	tf_get_state = strings.ReplaceAll(tf_get_state, "\\", "")
-// 	tf_get_state = strings.ReplaceAll(tf_get_state, "[\"", "[")
-// 	tf_get_state = strings.ReplaceAll(tf_get_state, "\"]", "]")
-
-// 	if err != nil {
-// 		assert.FailNow(t, "State File was not able to be pulled - tests cannot run.")
-// 	}
-// 	State = &TerraformState{}
-// 	json.Unmarshal([]byte(tf_get_state), &RawState)
-// 	_, err = marshmallow.Unmarshal([]byte(tf_get_state), State)
-
-// 	if err != nil {
-// 		assert.FailNow(t, "Could not build map of State File - Tests cannot run.")
-// 	}
-
-// }
-
-// /*
-// TeardownTerraform accepts a testing struct and the path to the directory where the terraform main.tf is to then Destroy.
-
-// This respects path conventions, such as "../terraform/aks" to go back up one.
-// */
-// func TeardownTerraform(t *testing.T, terraformDirectory string) {
-
-// 	// Clean up resources with "terraform destroy" at the end of the test.
-// 	terraform.Destroy(t, &GeneralTerraformOptions)
-
 // }
