@@ -1,0 +1,3 @@
+# Global owners: Any document not matched by a pattern further in
+# this document will have this team pinged for review:
+*       @mednax-it/devops
