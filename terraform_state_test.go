@@ -136,3 +136,14 @@ func TestGetInstanceNamesReturnsCorrectName(t *testing.T) {
 	assert.Containsf(foundNames, TestAttributeName, "Expected Name of %s was not found in %s", TestAttributeName, foundNames[0])
 
 }
+
+func TestCompileAllRegexGroups(t *testing.T) {
+	assert := assert.New(t)
+	regexString := `module.platforms\[(?P<platform_id>\w*)\]`
+	expectedPlatformID := "TestPlatformID"
+	stringToMatch := "module.platforms[" + expectedPlatformID + "]"
+
+	parameterMap := CompileAllRegexGroups(regexString, stringToMatch)
+
+	assert.Equalf(expectedPlatformID, parameterMap["platform_id"], "The value for [platform_id] was %s and did not match expected %s", parameterMap["platform_id"], expectedPlatformID)
+}

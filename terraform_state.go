@@ -123,7 +123,7 @@ NOTE: Does not return an error if the compile function fails! Verify your regex 
 
 (We do not use regexp.MustCompile because otherwise its a panic that could cause the testing framework to not clean up)
 */
-func (d *Deployment) CompileAllRegexGroups(regEx, stringToMatch string) map[string]string {
+func CompileAllRegexGroups(regEx, stringToMatch string) map[string]string {
 
 	compRegEx, _ := regexp.Compile(regEx)
 
