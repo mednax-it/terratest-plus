@@ -12,7 +12,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
-	bashColor "github.com/mednax-it/terratest-plus/BashColor"
+	"github.com/mednax-it/terratest-plus/bashColor"
 	"github.com/mednax-it/terratest-plus/deployment"
 	"github.com/perimeterx/marshmallow"
 	"github.com/stretchr/testify/assert"
