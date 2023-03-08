@@ -203,6 +203,8 @@ func (d *Deployment) RunTests(dispatch map[string]func(t *testing.T)) {
 	}
 }
 
+/* RunTestStage is a nice little wrapper for a simple run test and including a stage automatically.
+ */
 func (d *Deployment) RunTestStage(stageName string, dispatch map[string]func(t *testing.T), optionalDescription *string) {
 	test_structure.RunTestStage(d.T, stageName, func() {
 		logger.Logf(d.T, "\n========== %s Tests  ==========\n\n", stageName)
@@ -250,7 +252,7 @@ func (d *Deployment) getTFVars(options *SetupTerraformOptions) {
 }
 
 /*
-	GetTFBackend looks for the env variablle TF_backend first, then takes from the options.
+	GetTFBackend looks for the env variable TF_backend first, then takes from the options.
 
 If the passed in options contains the word ".tfbackend" as a full path then it is used as is.
 Otherwise it defaults to `config.test_backend.tfbackend`
