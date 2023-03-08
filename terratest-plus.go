@@ -21,8 +21,8 @@ import (
 
 type SetupTerraformOptions struct {
 	TerraformDirectoryPath string `default:"src/"`
-	VarFileDirectoryPath   string `default:"./vars/"`
-	BackendDirectoryPath   string `default:"./backends/"`
+	VarFileDirectoryPath   string `default:"vars/"`
+	BackendDirectoryPath   string `default:"backends/"`
 	Workspace              string
 }
 
@@ -222,7 +222,7 @@ func (d *Deployment) getTFSource(options *SetupTerraformOptions) {
 	if val, present := os.LookupEnv("TF_source_dir"); present {
 		d.TerraformSourceDir = val
 	} else {
-		d.TerraformSourceDir, _ = filepath.Abs(options.TerraformDirectoryPath)
+		d.TerraformSourceDir = options.TerraformDirectoryPath
 	}
 }
 
