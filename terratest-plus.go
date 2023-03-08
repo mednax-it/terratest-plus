@@ -12,6 +12,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+	bashColor "github.com/mednax-it/terratest-plus/BashColor"
 	"github.com/mednax-it/terratest-plus/deployment"
 	"github.com/perimeterx/marshmallow"
 	"github.com/stretchr/testify/assert"
@@ -171,19 +172,18 @@ If SKIP_terraform_destroy env variable is set, even if the the above qualifiers 
 */
 func (d *Deployment) Cleanup() {
 	if r := recover(); r != nil {
-		logger.Log(d.T, "\n\n\033[91m>>> Catastrophic Error (Panic!). <<<\033[0m\n\n")
+		LogWithColor(d.T, bashColor.FAIL, "\n\n>>> Catastrophic Error (Panic!). <<<\n\n")
 		logger.Log(d.T, r)
 		d.performCleanup = true
 	}
 
 	if d.T.Failed() && !d.ExecutingInLocal {
-		logger.Log(d.T, "\n\n\033[91m>>> One or more Tests failed. <<<\033[0m\n\n")
+		LogWithColor(d.T, bashColor.FAIL, "\n\n>> One or more Tests failed. <<<\n\n")
 		d.performCleanup = true
 	}
 
 	if d.ExecutingInLocal {
-		logger.Logf(d.T, "\n\n\033[93m>>> Local Testing - Env Left in place. Use the following when finished: \033[0m\n\n\t$ terraform workspace select %s\n\t$ terraform destroy -var-file=%s\n\t$ terraform workspace select default\n\t$ terraform workspace delete %s\n\n", d.WorkspaceName, d.VarFilePath, d.WorkspaceName)
-
+		LogWithColorF(d.T, bashColor.WARNING, "\n\n>>> Local Testing - Env Left in place. Use the following when finished:\n\n\t$ terraform workspace select %s\n\t$ terraform destroy -var-file=%s\n\t$ terraform workspace select default\n\t$ terraform workspace delete %s\n\n", d.WorkspaceName, d.VarFilePath, d.WorkspaceName)
 	}
 
 	test_structure.RunTestStage(d.T, "terraform_destroy", func() {
@@ -285,7 +285,7 @@ func (d *Deployment) getTFWorkspace(options *SetupTerraformOptions) {
 		d.WorkspaceName = options.Workspace
 	}
 
-	d.cleanWorkspaceName()
+	d.CleanWorkspaceName()
 }
 
 /*
@@ -304,11 +304,23 @@ func (d *Deployment) getOutputValues() {
 
 We do this here in the terratest helpers so we it is only done in one place, and that place is along side other similar operations.
 */
-func (d *Deployment) cleanWorkspaceName() {
+func (d *Deployment) CleanWorkspaceName() {
 	if len(d.WorkspaceName) >= 7 {
 		d.WorkspaceName = d.WorkspaceName[0:7]
 	} else {
 		d.WorkspaceName += strings.Repeat("0", 7-len(d.WorkspaceName))
 	}
 
+}
+
+/* LogWIthColor is a wrapper for logger.Log combined with a bash color.
+ */
+func LogWithColor(t *testing.T, color bashColor.ColorCode, msg string) {
+	logger.Log(t, bashColor.ColorString(color, msg))
+}
+
+/* LogWIthColorF is a wrapper for logger.Logf combined with a bash color and string format verbs.
+ */
+func LogWithColorF(t *testing.T, color bashColor.ColorCode, msg string, args ...interface{}) {
+	logger.Logf(t, bashColor.ColorString(color, msg), args...)
 }
