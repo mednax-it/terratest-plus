@@ -122,7 +122,7 @@ This allows for a map for use in testing certain situations.
 
 GetState sets the State struct var for use in various tests, as well as the RawState var.
 
-GetState should not need to be used in General Testing but is provided exposed just in case. Instead use the helper functions found in wrapper/state.go.
+GetState should not need to be used in General Testing but is provided exposed just in case.
 
 Note: in order to make matching to a Struct easier, the terraform module names (which are usually like `["name"]` ) have been cleaned to just `[name]`.
 */
@@ -182,7 +182,7 @@ func (d *Deployment) Cleanup() {
 	}
 
 	if d.ExecutingInLocal {
-		logger.Logf(d.T, "\n\n\033[93m>>> Local Testing - Env Left in place. Use the following when finished: \033[0m\n\n\t$ terraform workspace select %s\n\t$ terraform destroy -var-file=%s\n\t$ terraform workspace select default\n\t$ terraform workspace delete %s\n\n", wrapper.WorkspaceName, wrapper.VarfilePath, wrapper.WorkspaceName)
+		logger.Logf(d.T, "\n\n\033[93m>>> Local Testing - Env Left in place. Use the following when finished: \033[0m\n\n\t$ terraform workspace select %s\n\t$ terraform destroy -var-file=%s\n\t$ terraform workspace select default\n\t$ terraform workspace delete %s\n\n", d.WorkspaceName, d.VarFilePath, d.WorkspaceName)
 
 	}
 
@@ -300,7 +300,7 @@ func (d *Deployment) getOutputValues() {
 /*
 	CleanWorkspaceName shortens the name to 7 characters and sets the env var and some display variables.
 
-We do this here in the terratest wrapper so we it is only done in one place, and that place is along side other similar operations.
+We do this here in the terratest helpers so we it is only done in one place, and that place is along side other similar operations.
 */
 func (d *Deployment) cleanWorkspaceName() {
 	if len(d.WorkspaceName) >= 7 {

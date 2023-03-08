@@ -42,7 +42,7 @@ func SetupMockState() *deployment.TerraformState {
 
 	resource := deployment.StateResource{
 		Module:    TestModule,
-		Mode:      "resourceMode",
+		Mode:      "managed",
 		Type:      TestTypeOne,
 		Name:      TestNameOne,
 		Provider:  "resourceProvider",
@@ -51,7 +51,7 @@ func SetupMockState() *deployment.TerraformState {
 
 	resourceSameType := deployment.StateResource{
 		Module:    TestModule,
-		Mode:      "resourceMode",
+		Mode:      "managed",
 		Type:      TestTypeOne,
 		Name:      TestNameTwo,
 		Provider:  "resourceProvider",

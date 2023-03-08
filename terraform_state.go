@@ -11,14 +11,24 @@ import (
 FindAllResourceType finds based on a type like `azurerm_kubernetes_cluster`.
 
 The resulting return will be a map of StateResource structs, allowing use of direct attribute calls, such as StateResource.
+It will only returned managed resource types, as others are not necessary for testing.
+Use FindALlResourceTypeByMode if data or other is needed.
 */
 func (d *Deployment) FindAllResourceType(resourceType string) map[string]*deployment.StateResource {
+
+	return d.FindAllResourceTypeByMode(resourceType, "managed")
+}
+
+/*
+FindAllResourceTypeByMode finds based on a type like `asurerm_kubernetes_cluster` and a mode like `data`.
+The resulting return will be a map of StateResource structs, allowing use of direct attribute calls, such as StateResource.
+*/
+func (d *Deployment) FindAllResourceTypeByMode(resourceType string, mode string) map[string]*deployment.StateResource {
 
 	output := make(map[string]*deployment.StateResource)
 	for v := range d.State.Resources {
 		resource := d.State.Resources[v]
-		if resource.Type == resourceType {
-
+		if resource.Type == resourceType && resource.Mode == mode {
 			full_address := d.cleanTerraformAddress(resource)
 			output[full_address] = resource
 		}
@@ -73,7 +83,7 @@ The return value is a slice of interfaces, so it will need to be defined dependi
 
 Will Cause the test to fail if it cannot find the attribute on the provided list of resources.
 
-This is most useful for finding specific attributes not covered in wrapper/state.go StateResource and subsequent structs.
+This is most useful for finding specific attributes not covered in StateResource and subsequent structs.
 
 Note if you provide a name, if you have different resource types with the same name (such as the terraform convention `this`) this function will produce incorrect results.
 */
@@ -154,7 +164,7 @@ func (d *Deployment) cleanTerraformAddress(resource interface{}) string {
 		return value["module"].(string) + "." + value["type"].(string) + "." + value["name"].(string)
 	}
 
-	assert.FailNow(d.T, "Could not create a clean Terraform Address! Something is wrong in the wrapper functions")
+	assert.FailNow(d.T, "Could not create a clean Terraform Address! Something is wrong in the TerratestPlus functions")
 
 	return ""
 }
