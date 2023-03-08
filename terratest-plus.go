@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"os/user"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -20,8 +21,8 @@ import (
 
 type SetupTerraformOptions struct {
 	TerraformDirectoryPath string `default:"src/"`
-	VarFileDirectoryPath   string `default:"vars/"`
-	BackendDirectoryPath   string `default:"backends/"`
+	VarFileDirectoryPath   string `default:"./vars/"`
+	BackendDirectoryPath   string `default:"./backends/"`
 	Workspace              string
 }
 
@@ -221,7 +222,7 @@ func (d *Deployment) getTFSource(options *SetupTerraformOptions) {
 	if val, present := os.LookupEnv("TF_source_dir"); present {
 		d.TerraformSourceDir = val
 	} else {
-		d.TerraformSourceDir = options.TerraformDirectoryPath
+		d.TerraformSourceDir, _ = filepath.Abs(options.TerraformDirectoryPath)
 	}
 }
 
@@ -239,7 +240,7 @@ func (d *Deployment) getTFVars(options *SetupTerraformOptions) {
 		if strings.Contains(options.VarFileDirectoryPath, ".tfvars") {
 			d.VarFilePath = options.VarFileDirectoryPath
 		} else {
-			d.VarFilePath = options.VarFileDirectoryPath + "local.tfvars"
+			d.VarFilePath = filepath.Join(options.VarFileDirectoryPath, "local.tfvars")
 		}
 	}
 
@@ -264,7 +265,7 @@ func (d *Deployment) getTFBackend(options *SetupTerraformOptions) {
 		if strings.Contains(options.BackendDirectoryPath, ".tfbackend") {
 			d.BackendFilePath = options.BackendDirectoryPath
 		} else {
-			d.BackendFilePath = options.BackendDirectoryPath + "config.test_backend.tfbackend"
+			d.BackendFilePath = filepath.Join(options.BackendDirectoryPath, "config.test_backend.tfbackend")
 		}
 
 	}
