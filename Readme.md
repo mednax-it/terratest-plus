@@ -23,6 +23,8 @@ The following environment variables can be used, and are prioritized by this mod
 * `TF_backend` the path to the backend file to use. Similar to vars, it is relative to the terraform source directory, so `backend/config.test_backend.tfbackend` if the `backend` directory is in the `src` directory
 * `TF_workspace` is used to set the name of the workspace. This is overwritten by Circles `CIRCLE_SHA1` if being run in a pipeline
 
+* `LOG_TERRAFORM` set `=true` if you want to see verbose terraform logging out of Terratest. any other value will hide most of the terraform logs from of the output.
+
 * `SKIP_terraform_init` will skip the terraform init - really only useful for local testing to speed up testing
 * `SKIP_terraform_apply` will skip the terraform apply step - again mostly useful for local testing.
 
