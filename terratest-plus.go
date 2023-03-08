@@ -254,9 +254,8 @@ func (d *Deployment) getTFVars(options *SetupTerraformOptions) {
 		d.ExecutingInLocal = true
 		d.RunInit = true
 	}
-	d.VarFileValues = make(map[string]interface{})
 
-	terraform.GetAllVariablesFromVarFile(d.T, filepath.Join(d.TerraformSourceDir, d.VarFilePath), d.VarFileValues)
+	terraform.GetAllVariablesFromVarFile(d.T, filepath.Join(d.TerraformSourceDir, d.VarFilePath), &d.VarFileValues)
 }
 
 /*
