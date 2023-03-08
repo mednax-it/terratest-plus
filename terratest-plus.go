@@ -142,7 +142,7 @@ func (d *Deployment) GetState() {
 		assert.FailNow(d.T, "State File was not able to be pulled - tests cannot run.")
 	}
 	json.Unmarshal([]byte(tf_get_state), &d.RawState)
-	_, err = marshmallow.Unmarshal([]byte(tf_get_state), &d.State)
+	_, err = marshmallow.Unmarshal([]byte(tf_get_state), d.State)
 
 	if err != nil {
 		logger.Logf(d.T, "Error building State Map: %s", errors.Unwrap(err))
