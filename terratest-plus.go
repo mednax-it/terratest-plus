@@ -81,7 +81,7 @@ func (d *Deployment) SetupTerraform(t *testing.T, options *SetupTerraformOptions
 	d.getTFBackend(options)
 	//d.getTFWorkspace(options)
 
-	terraformLogger := logger.Default
+	terraformLogger := logger.Discard
 	if val := os.Getenv("LOG_TERRAFORM"); val == "true" {
 		terraformLogger = nil
 	}
