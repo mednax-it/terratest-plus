@@ -329,5 +329,5 @@ func LogWithColor(t *testing.T, color bashColor.ColorCode, msg string) {
 /* LogWIthColorF is a wrapper for logger.Logf combined with a bash color and string format verbs.
  */
 func LogWithColorF(t *testing.T, color bashColor.ColorCode, msg string, args ...interface{}) {
-	logger.Logf(t, bashColor.ColorString(color, msg), args...)
+	logger.Log(t, bashColor.ColorStringF(color, msg, args...))
 }
