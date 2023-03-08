@@ -2,7 +2,7 @@ A module for extending Terratest options
 
 # Using this Module
 
-t the time of this Readme being updated, that is still a private mednax-it internal repository. This means that `go get` and `go mod tidy` cannot download and update without some help.
+At the time of this Readme being updated, that is still a private mednax-it internal repository. This means that `go get` and `go mod tidy` cannot download and update without some help.
 
 In your local, complete the following steps to install the module:
 1. This requires you to have ssh set up for your git connection already. If you haven't done this before, see [this link](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
@@ -25,3 +25,7 @@ The following environment variables can be used, and are prioritized by this mod
 
 * `SKIP_terraform_init` will skip the terraform init - really only useful for local testing to speed up testing
 * `SKIP_terraform_apply` will skip the terraform apply step - again mostly useful for local testing.
+
+# Modifying for your needs
+
+Everyone's terraform is going to be different. This module can only do so much, so its intended to provide a few tools and to be extended to fit your specific terraform needs. Create a struct that is compromised of `terratestPlus.Deployment` and you will have all the basics to extend to your needs.
