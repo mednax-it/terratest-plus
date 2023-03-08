@@ -106,8 +106,9 @@ func (d *Deployment) DeployInfrastructure() {
 		}
 	})
 
+	terraform.WorkspaceSelectOrNew(d.T, &d.TerraformOptions, d.WorkspaceName)
+
 	test_structure.RunTestStage(d.T, "terraform_apply", func() {
-		terraform.WorkspaceSelectOrNew(d.T, &d.TerraformOptions, d.WorkspaceName)
 		terraform.Apply(d.T, &d.TerraformOptions)
 	})
 
