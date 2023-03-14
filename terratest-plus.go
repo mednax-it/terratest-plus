@@ -225,7 +225,7 @@ func (d *Deployment) RunTestStage(stageName string, dispatch map[string]func(t *
 
 		logger.Log(d.T, ColorTestTitleString(stageName))
 		if optionalDescription != nil {
-			LogWithColorF(d.T, bashColor.BOLD, "\n\n\t%s", *optionalDescription)
+			LogWithColorF(d.T, bashColor.HEADER, "\n\n\t%s", *optionalDescription)
 		}
 		d.RunTests(dispatch)
 	})
