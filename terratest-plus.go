@@ -24,6 +24,7 @@ type SetupTerraformOptions struct {
 	VarFileDirectoryPath   string `default:"vars/"`
 	BackendDirectoryPath   string `default:"backends/"`
 	Workspace              string
+	Parallelism            int
 }
 
 func defaultValues(o *SetupTerraformOptions) {
@@ -42,6 +43,10 @@ func defaultValues(o *SetupTerraformOptions) {
 	if o.Workspace == "" {
 		user, _ := user.Current()
 		o.Workspace = strings.ReplaceAll(user.Name, " ", "")
+	}
+
+	if o.Parallelism == 0 {
+		o.Parallelism = 10
 	}
 }
 
@@ -90,7 +95,7 @@ func (d *Deployment) SetupTerraform(t *testing.T, options *SetupTerraformOptions
 		TerraformDir: d.TerraformSourceDir,
 		VarFiles:     []string{d.VarFilePath},
 		EnvVars:      map[string]string{"TF_PARAM_BACKEND_CONFIG_FILE": d.BackendFilePath},
-		Parallelism:  10,
+		Parallelism:  options.Parallelism,
 		Logger:       terraformLogger,
 	})
 }
@@ -191,6 +196,7 @@ func (d *Deployment) Cleanup() {
 
 	if d.ExecutingInLocal {
 		LogWithColorF(d.T, bashColor.WARNING, "\n\n>>> Local Testing - Env Left in place. Use the following when finished:\n\n\t$ terraform workspace select %s\n\t$ terraform destroy -var-file=%s\n\t$ terraform workspace select default\n\t$ terraform workspace delete %s\n\n", d.WorkspaceName, d.VarFilePath, d.WorkspaceName)
+		d.performCleanup = false
 	}
 
 	test_structure.RunTestStage(d.T, "terraform_destroy", func() {
@@ -214,9 +220,10 @@ func (d *Deployment) RunTests(dispatch map[string]func(t *testing.T)) {
  */
 func (d *Deployment) RunTestStage(stageName string, dispatch map[string]func(t *testing.T), optionalDescription *string) {
 	test_structure.RunTestStage(d.T, stageName, func() {
-		logger.Logf(d.T, "\n========== %s Tests  ==========\n\n", stageName)
+		titleString := bashColor.HEADER + bashColor.OKCYAN + "\n\n========== " + bashColor.ENDC + bashColor.ColorCode(stageName) + " Tests " + bashColor.HEADER + bashColor.OKCYAN + "==========\n\n" + bashColor.ENDC
+		logger.Log(d.T, titleString)
 		if optionalDescription != nil {
-			logger.Logf(d.T, "\n\t%s", *optionalDescription)
+			LogWithColorF(d.T, bashColor.BOLD, "\n\n\t%s", *optionalDescription)
 		}
 		d.RunTests(dispatch)
 	})
