@@ -222,13 +222,21 @@ func (d *Deployment) RunTests(dispatch map[string]func(t *testing.T)) {
  */
 func (d *Deployment) RunTestStage(stageName string, dispatch map[string]func(t *testing.T), optionalDescription *string) {
 	test_structure.RunTestStage(d.T, stageName, func() {
-		titleString := bashColor.HEADER + bashColor.OKCYAN + "\n\n========== " + bashColor.ENDC + bashColor.ColorCode(stageName) + " Tests " + bashColor.HEADER + bashColor.OKCYAN + "==========\n\n" + bashColor.ENDC
-		logger.Log(d.T, titleString)
+
+		logger.Log(d.T, ColorTestTitleString(stageName))
 		if optionalDescription != nil {
 			LogWithColorF(d.T, bashColor.BOLD, "\n\n\t%s", *optionalDescription)
 		}
 		d.RunTests(dispatch)
 	})
+}
+
+/*
+ColorTestTitleString colors the string for the test categories for use outside of RunTestStage
+*/
+func ColorTestTitleString(testCategory string) string {
+	titleString := bashColor.HEADER + bashColor.OKCYAN + "\n\n========== " + bashColor.ENDC + bashColor.ColorCode(testCategory) + " Tests " + bashColor.HEADER + bashColor.OKCYAN + "==========\n\n" + bashColor.ENDC
+	return string(titleString)
 }
 
 /* GetTFSource checks the env variable TF_source_dir first, then uses the values from the passed in options
