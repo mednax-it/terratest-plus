@@ -203,6 +203,8 @@ func (d *Deployment) Cleanup() {
 		if d.performCleanup {
 			logger.Log(d.T, "\n\n>>> Cleaning up after failure in testing ... <<< \n\n")
 			d.TeardownTerraform()
+		} else {
+			logger.Log(d.T, "\n\n>>> Local Testing detected, all cleanup was skipped... <<< \n\n")
 		}
 	})
 }
