@@ -40,11 +40,6 @@ func defaultValues(o *SetupTerraformOptions) {
 		o.BackendDirectoryPath = getDefaultTag(*o, "BackendDirectoryPath")
 	}
 
-	if o.Workspace == "" {
-		user, _ := user.Current()
-		o.Workspace = strings.ReplaceAll(user.Name, " ", "")
-	}
-
 	if o.Parallelism == 0 {
 		o.Parallelism = 10
 	}
@@ -84,7 +79,9 @@ func (d *Deployment) SetupTerraform(t *testing.T, options *SetupTerraformOptions
 	d.getTFSource(options)
 	d.getTFVars(options)
 	d.getTFBackend(options)
-	//d.getTFWorkspace(options)
+	d.getTFWorkspace(options)
+
+	arm_values := d.getAzureArmValues()
 
 	terraformLogger := logger.Discard
 	if val := os.Getenv("LOG_TERRAFORM"); val == "true" {
@@ -95,6 +92,7 @@ func (d *Deployment) SetupTerraform(t *testing.T, options *SetupTerraformOptions
 		TerraformDir:  d.TerraformSourceDir,
 		VarFiles:      []string{d.VarFilePath},
 		BackendConfig: d.BackendValues,
+		EnvVars:       arm_values,
 		Parallelism:   options.Parallelism,
 		Logger:        terraformLogger,
 		Lock:          true,
@@ -310,13 +308,16 @@ func (d *Deployment) parseBackendFile() {
 It sets all of them to 7 characters, either cutting it down or adding 0s.
 */
 func (d *Deployment) getTFWorkspace(options *SetupTerraformOptions) {
-	if val, present := os.LookupEnv("TF_workspace"); present {
+	if options.Workspace != "" {
+		d.WorkspaceName = options.Workspace
+	} else if val, present := os.LookupEnv("TF_workspace"); present {
 		d.WorkspaceName = val
 	} else if val, present := os.LookupEnv("CIRCLE_SHA1"); present {
 		d.WorkspaceName = val
-
 	} else {
-		d.WorkspaceName = options.Workspace
+		user, _ := user.Current()
+		d.WorkspaceName = strings.ReplaceAll(user.Name, " ", "")
+
 	}
 
 	d.CleanWorkspaceName()
@@ -331,6 +332,39 @@ As such it is called automatically as part of the DeployInfrastructure
 */
 func (d *Deployment) getOutputValues() {
 	d.OutputValues = terraform.OutputAll(d.T, &d.TerraformOptions)
+}
+
+func (d *Deployment) getAzureArmValues() map[string]string {
+
+	output := make(map[string]string)
+	if value, exists := os.LookupEnv("ARM_TENANT_ID"); exists {
+		output["ARM_TENANT_ID"] = value
+	} else if value, exists := os.LookupEnv("AZURE_SP_TENANT"); exists {
+		output["ARM_TENANT_ID"] = value
+	} else if value, ok := d.VarFileValues["tenant_id"]; ok {
+		output["ARM_TENANT_ID"] = value.(string)
+	}
+
+	if value, exists := os.LookupEnv("ARM_CLIENT_ID"); exists {
+		output["ARM_CLIENT_ID"] = value
+	} else if value, exists := os.LookupEnv("AZURE_SP"); exists {
+		output["ARM_CLIENT_ID"] = value
+	} else if value, ok := d.VarFileValues["client_id"]; ok {
+		output["ARM_CLIENT_ID"] = value.(string)
+	}
+
+	if value, exists := os.LookupEnv("ARM_CLIENT_SECRET"); exists {
+		output["ARM_CLIENT_SECRET"] = value
+	} else if value, exists := os.LookupEnv("AZURE_SP_PASSWORD"); exists {
+		output["ARM_CLIENT_SECRET"] = value
+	} else if value, ok := d.VarFileValues["client_secret"]; ok {
+		output["ARM_CLIENT_SECRET"] = value.(string)
+	}
+
+	if value, ok := d.VarFileValues["subscription_id"]; ok {
+		output["ARM_SUBSCRIPTION_ID"] = value.(string)
+	}
+	return output
 }
 
 /*
