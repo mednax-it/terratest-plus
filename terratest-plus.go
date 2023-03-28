@@ -190,7 +190,7 @@ func (d *Deployment) Cleanup() {
 	}
 
 	if d.T.Failed() && !d.ExecutingInLocal {
-		LogWithColor(d.T, bashColor.FAIL, "\n\n>> One or more Tests failed. <<<\n\n")
+		LogWithColor(d.T, bashColor.FAIL, "\n\n>>> One or more Tests failed. <<<\n\n")
 		d.performCleanup = true
 	}
 
@@ -204,7 +204,7 @@ func (d *Deployment) Cleanup() {
 			logger.Log(d.T, "\n\n>>> Cleaning up after failure in testing ... <<< \n\n")
 			d.TeardownTerraform()
 		} else {
-			logger.Log(d.T, "\n\n>>> Local Testing detected, all cleanup was skipped... <<< \n\n")
+			LogWithColor(d.T, bashColor.OKGREEN, "\n\n>>> Terratest Plus successfully completed. No Cleanup preformed <<<\n\n")
 		}
 	})
 }
@@ -337,10 +337,13 @@ func (d *Deployment) CleanWorkspaceName() {
 
 }
 
-/* LogWIthColor is a wrapper for logger.Log combined with a bash color.
- */
+/*
+	LogWIthColor is a thin wrapper around LogWithColorF for cleanliness.
+
+LogWithColorF wraps around terratest terraform.logger.Log() but with color formatting for the string
+*/
 func LogWithColor(t *testing.T, color bashColor.ColorCode, msg string) {
-	logger.Log(t, bashColor.ColorString(color, msg))
+	LogWithColorF(t, color, msg)
 }
 
 /* LogWIthColorF is a wrapper for logger.Logf combined with a bash color and string format verbs.
