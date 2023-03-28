@@ -12,6 +12,7 @@ type D struct {
 	SubscriptionId   string
 	State            *TerraformState
 	RawState         map[string]interface{}
+	BackendValues    map[string]interface{}
 	VarFileValues    map[string]interface{}
 	OutputValues     map[string]interface{}
 

@@ -92,11 +92,12 @@ func (d *Deployment) SetupTerraform(t *testing.T, options *SetupTerraformOptions
 	}
 	d.TerraformOptions = *terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 		// Set the path to the Terraform code that will be tested.
-		TerraformDir: d.TerraformSourceDir,
-		VarFiles:     []string{d.VarFilePath},
-		EnvVars:      map[string]string{"TF_PARAM_BACKEND_CONFIG_FILE": d.BackendFilePath},
-		Parallelism:  options.Parallelism,
-		Logger:       terraformLogger,
+		TerraformDir:  d.TerraformSourceDir,
+		VarFiles:      []string{d.VarFilePath},
+		BackendConfig: d.BackendValues,
+		Parallelism:   options.Parallelism,
+		Logger:        terraformLogger,
+		Lock:          true,
 	})
 }
 
@@ -292,6 +293,15 @@ func (d *Deployment) getTFBackend(options *SetupTerraformOptions) {
 		}
 
 	}
+
+	if d.BackendFilePath != "" {
+
+		d.parseBackendFile()
+	}
+}
+
+func (d *Deployment) parseBackendFile() {
+	terraform.GetAllVariablesFromVarFile(d.T, filepath.Join(d.TerraformSourceDir, d.BackendFilePath), &d.BackendValues)
 }
 
 /*
