@@ -28,6 +28,27 @@ The following environment variables can be used, and are prioritized by this mod
 * `SKIP_terraform_init` will skip the terraform init - really only useful for local testing to speed up testing
 * `SKIP_terraform_apply` will skip the terraform apply step - again mostly useful for local testing.
 
+
+# Service Principle
+
+This is currently set up to use either local if nothing exists or an Azure Service Principle. As such the following env values need to be set:
+
+```
+ARM_TENANT_ID
+ARM_CLIENT_SECRET
+ARM_CLIENT_ID
+ARM_SUBSCRIPTION_ID
+```
+
+alternatively they can be provided in the var file as: (but be aware these are secrets and should not be committed to a repo. Safer to use the env values)
+
+```
+tenant_id
+client_secret
+client_id
+subscription_id
+```
+
 # Modifying for your needs
 
 Everyone's terraform is going to be different. This module can only do so much, so its intended to provide a few tools and to be extended to fit your specific terraform needs. Create a struct that is compromised of `terratestPlus.Deployment` and you will have all the basics to extend to your needs.
