@@ -103,7 +103,7 @@ func TestDefaultVarFileOfLocalForcesExecuteInLocalFlagTrue(t *testing.T) {
 func TestBackendPathWhenNilOptionsDefaults(t *testing.T) {
 	assert := assert.New(t)
 	testStruct := new(Deployment)
-	expectedPath := "backends/config.test_backend.tfbackend"
+	expectedPath := "backends/config.t"
 
 	testStruct.SetupTerraform(t, nil)
 
