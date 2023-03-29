@@ -202,6 +202,10 @@ func (d *Deployment) Cleanup() {
 		if d.performCleanup {
 			logger.Log(d.T, "\n\n>>> Cleaning up after failure in testing ... <<< \n\n")
 			d.TeardownTerraform()
+			_, err := terraform.WorkspaceDeleteE(d.T, &d.TerraformOptions, d.WorkspaceName)
+			if err != nil {
+				LogWithColorF(d.T, bashColor.WARNING, "\n\n>>> Failed to clean up Workspace %s - continuing as normal, but be aware of state files remaining in remote. \n\n", d.WorkspaceName)
+			}
 		} else {
 			LogWithColor(d.T, bashColor.OKGREEN, "\n\n>>> Terratest Plus successfully completed. No Cleanup preformed <<<\n\n")
 		}
