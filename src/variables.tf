@@ -9,6 +9,6 @@ variable "test_map" {
 }
 
 variable "test_array" {
-  type = array
+  type = list(any)
 
 }
