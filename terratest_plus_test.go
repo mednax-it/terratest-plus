@@ -103,7 +103,7 @@ func TestDefaultVarFileOfLocalForcesExecuteInLocalFlagTrue(t *testing.T) {
 func TestBackendPathWhenNilOptionsDefaults(t *testing.T) {
 	assert := assert.New(t)
 	testStruct := new(Deployment)
-	expectedPath := "backends/config.t"
+	expectedPath := "backends/test.tfbackend"
 
 	testStruct.SetupTerraform(t, nil)
 
@@ -114,7 +114,7 @@ func TestBackendPathWhenNilOptionsDefaults(t *testing.T) {
 func TestBackendPathWhenProvidedBlankOptionsDefaults(t *testing.T) {
 	assert := assert.New(t)
 	testStruct := new(Deployment)
-	expectedPath := "backends/config.test_backend.tfbackend"
+	expectedPath := "backends/test.tfbackend"
 	options := new(SetupTerraformOptions)
 
 	testStruct.SetupTerraform(t, options)
@@ -125,7 +125,7 @@ func TestBackendPathWhenProvidedBlankOptionsDefaults(t *testing.T) {
 
 func TestBackendWhenSetByEnvVariable(t *testing.T) {
 	assert := assert.New(t)
-	expectedPath := "backends/config.test_backend.tfbackend"
+	expectedPath := "backends/test.tfbackend"
 	os.Setenv("TF_backend", expectedPath)
 	defer os.Unsetenv("TF_backend")
 

@@ -1,0 +1,4 @@
+    resource_group_name = "DevOpsCommon"
+    storage_account_name = "mdcompliancetfstate"
+    container_name = "terraform-test"
+    key = "feel-free-to-delete-me.terraform.tfstate"

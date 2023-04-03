@@ -20,7 +20,7 @@ The following environment variables can be used, and are prioritized by this mod
 * `TF_source` the source directory for terraform. This is relative to wherever the terratest main file is being run from. So if the terratest main file isin the root, and terraform are in the `src` directory off that root, just `src/` is enough.
   * If the terratest files are in a parallel directory, then you can use the `../src` notation to go back up a directory.
 * `TF_var_file` the path to the var file to be used, *relative to the terraform directory* - so if the terraform files are in `src` and the var files in `vars` and the file you want to use is `local.tfvars` the env variable should be set to `vars/local.tfvars`
-* `TF_backend` the path to the backend file to use. Similar to vars, it is relative to the terraform source directory, so `backend/config.test_backend.tfbackend` if the `backend` directory is in the `src` directory
+* `TF_backend` the path to the backend file to use. Similar to vars, it is relative to the terraform source directory, so `backend/test.tfbackend` if the `backend` directory is in the `src` directory
 * `TF_workspace` is used to set the name of the workspace. This is overwritten by Circles `CIRCLE_SHA1` if being run in a pipeline
 
 * `LOG_TERRAFORM` set `=true` if you want to see verbose terraform logging out of Terratest. any other value will hide most of the terraform logs from of the output.

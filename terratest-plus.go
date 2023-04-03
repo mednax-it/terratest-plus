@@ -282,7 +282,7 @@ func (d *Deployment) getTFVars(options *SetupTerraformOptions) {
 	GetTFBackend looks for the env variable TF_backend first, then takes from the options.
 
 If the passed in options contains the word ".tfbackend" as a full path then it is used as is.
-Otherwise it defaults to `config.test_backend.tfbackend`
+Otherwise it defaults to `test.tfbackend`
 */
 func (d *Deployment) getTFBackend(options *SetupTerraformOptions) {
 	if val, present := os.LookupEnv("TF_backend"); present {
@@ -291,7 +291,7 @@ func (d *Deployment) getTFBackend(options *SetupTerraformOptions) {
 		if strings.Contains(options.BackendDirectoryPath, ".tfbackend") {
 			d.BackendFilePath = options.BackendDirectoryPath
 		} else {
-			d.BackendFilePath = filepath.Join(options.BackendDirectoryPath, "config.test_backend.tfbackend")
+			d.BackendFilePath = filepath.Join(options.BackendDirectoryPath, "test.tfbackend")
 		}
 
 	}
