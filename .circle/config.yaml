@@ -8,3 +8,24 @@ executors:
         auth:
           username: $REPO_USER
           password: $REPO_PW
+jobs:
+  Test Framework:
+    executor: build-container
+    description: Builds an Adhoc Testing Env and destroys it at the end. For testing the Terratest Framework
+    steps:
+      - checkout
+      - run:
+          command: |
+            go test -count=1 -v
+          no_output_timeout: 1h
+
+
+workflows:
+
+  Testing TerratestPlus:
+    jobs:
+    - Test Framework:
+        name: Run Complete Adhoc Test Env
+        context:
+          - mednax-global
+          - github-machine-user
