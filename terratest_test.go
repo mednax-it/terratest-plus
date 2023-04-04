@@ -3,6 +3,8 @@ package terratestPlus
 import (
 	"testing"
 
+	"github.com/gruntwork-io/terratest/modules/logger"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -12,6 +14,7 @@ func TestEndToEndOfSetupAndDeploy(t *testing.T) {
 
 	DeployedResources = new(Deployment)
 	DeployedResources.SetupTerraform(t, nil)
+	DeployedResources.TerraformOptions.Logger = logger.Default
 	DeployedResources.DeployInfrastructure()
 
 	defer func() {
@@ -23,10 +26,15 @@ func TestEndToEndOfSetupAndDeploy(t *testing.T) {
 	//Cleanup as part of the E2E
 	defer DeployedResources.Cleanup()
 
-	require.False(t, DeployedResources.T.Failed(), "There was a failure in an assertion")
+	assert.False(t, DeployedResources.performCleanup, "Cleanup flag was not set False")
 
 }
 
 func TestDestroyOfSetupAndDeploy(t *testing.T) {
 	DeployedResources.TeardownTerraform()
+
+	defer func() {
+		require.Nil(t, recover(), "Panic Occurred, test will fail")
+	}()
+
 }
