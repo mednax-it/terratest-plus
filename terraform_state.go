@@ -79,6 +79,8 @@ GetInstanceAttributeValuesOfResource returns a slice of all the values of a spec
 
 It takes an Identifier, which can be either a terraform resource type (e.g. `azurerm_resource_group`) or a resource name.
 
+It ignores any resource that is not Managed - so Data and Local resources are ignored and will not be found.
+
 The return value is a slice of interfaces, so it will need to be defined depending on what type the attribute is (i.e `value.(string)` )
 
 Will Cause the test to fail if it cannot find the attribute on the provided list of resources.
@@ -93,7 +95,7 @@ func (d *Deployment) GetInstanceAttributeValuesOfResource(identifier string, att
 	resources := d.RawState["resources"].([]interface{})
 	for _, v := range resources {
 		resource := v.(map[string]interface{})
-		if resource["type"] == identifier || resource["name"] == identifier {
+		if resource["mode"] == "managed" && (resource["type"] == identifier || resource["name"] == identifier) {
 			terraform_address := d.cleanTerraformAddress(resource)
 
 			instances := resource["instances"].([]interface{})
