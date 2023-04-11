@@ -75,6 +75,7 @@ func SetupMockRawState() map[string]interface{} {
 	}
 	rawMockResource := map[string]interface{}{
 		"module":    TestModule,
+		"mode":      "managed",
 		"type":      TestTypeOne,
 		"name":      TestNameOne,
 		"instances": []interface{}{rawMockInstance, rawMockInstance},
