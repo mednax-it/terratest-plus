@@ -20,6 +20,8 @@ func SetupMockState() *deployment.TerraformState {
 	tags := map[string]interface{}{
 		"Tag1": "tag1Value",
 	}
+	index1 := "Index1"
+
 	attributes := deployment.StateResourceAttributes{
 		Id:       "AttributeID",
 		Location: "AttributeLocation",
@@ -35,9 +37,11 @@ func SetupMockState() *deployment.TerraformState {
 
 	resourceInstance := deployment.StateResourceInstance{
 		Attributes: &attributes,
+		IndexKey:   &index1,
 	}
 	resourceInstanceTwo := deployment.StateResourceInstance{
 		Attributes: &attributesTwo,
+		IndexKey:   nil,
 	}
 
 	resource := deployment.StateResource{

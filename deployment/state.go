@@ -15,6 +15,7 @@ type StateResource struct {
 
 type StateResourceInstance struct {
 	Attributes *StateResourceAttributes `json:"attributes"`
+	IndexKey   *string                  `json:"index_key,omitempty"`
 }
 
 type StateResourceAttributes struct {
