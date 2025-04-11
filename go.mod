@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/gruntwork-io/terratest v0.41.12
-	github.com/perimeterx/marshmallow v1.1.4
+	github.com/perimeterx/marshmallow v1.1.5
 	github.com/stretchr/testify v1.8.2
 )
 
