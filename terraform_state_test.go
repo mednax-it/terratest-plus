@@ -1,6 +1,7 @@
 package terratestPlus
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/mednax-it/terratest-plus/deployment"
@@ -20,7 +21,7 @@ func SetupMockState() *deployment.TerraformState {
 	tags := map[string]interface{}{
 		"Tag1": "tag1Value",
 	}
-	index1 := "Index1"
+	var index1 json.Number = "Index1"
 
 	attributes := deployment.StateResourceAttributes{
 		Id:       "AttributeID",
