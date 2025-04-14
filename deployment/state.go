@@ -1,5 +1,7 @@
 package deployment
 
+import "encoding/json"
+
 type TerraformState struct {
 	Resources []*StateResource `json:"resources"`
 }
@@ -15,13 +17,12 @@ type StateResource struct {
 
 type StateResourceInstance struct {
 	Attributes *StateResourceAttributes `json:"attributes"`
-	IndexKey   *string                  `json:"index_key,omitempty"`
+	IndexKey   *json.Number             `json:"index_key,string,omitempty"`
 }
 
 type StateResourceAttributes struct {
 	Id       interface{}            `json:"id"`
 	Location interface{}            `json:"location,omitempty"`
 	Name     interface{}            `json:"name,omitempty"`
-	Audience []any                  `json:"audience,omitempty"`
 	Tags     map[string]interface{} `json:"tags,omitempty"`
 }
