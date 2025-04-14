@@ -22,5 +22,6 @@ type StateResourceAttributes struct {
 	Id       interface{}            `json:"id"`
 	Location interface{}            `json:"location,omitempty"`
 	Name     interface{}            `json:"name,omitempty"`
+	Audience []any                  `json:"audience,omitempty"`
 	Tags     map[string]interface{} `json:"tags,omitempty"`
 }

@@ -15,6 +15,7 @@ var TestAttributeName string = "AttributeName"
 var TestAttributeNameTwo string = "AttributeNameAsWell"
 var TestAttributeValue string = "TestAttributeValue"
 var TestAttributeValueTwo string = "TestAttributeValueTwo"
+var TestSlice []interface{} = make([]interface{}, 0)
 
 func SetupMockState() *deployment.TerraformState {
 	tags := map[string]interface{}{
@@ -32,6 +33,7 @@ func SetupMockState() *deployment.TerraformState {
 		Id:       "AttributeID",
 		Location: "AttributeLocation",
 		Name:     TestAttributeNameTwo,
+		Audience: TestSlice,
 		Tags:     tags,
 	}
 
