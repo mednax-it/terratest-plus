@@ -48,7 +48,7 @@ func SetupMockState() *deployment.TerraformState {
 	}
 
 	resourceInstanceThree := deployment.StateResourceInstance{
-		Attributes: &attributesTwo,
+		Attributes: &attributes,
 		IndexKey:   &indexNumber,
 	}
 
