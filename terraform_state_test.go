@@ -1,7 +1,6 @@
 package terratestPlus
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/mednax-it/terratest-plus/deployment"
@@ -12,6 +11,8 @@ var TestTypeOne string = "resourceType"
 var TestModule string = "resourceModule"
 var TestNameOne string = "testNameOne"
 var TestNameTwo string = "testNameButDifferent"
+
+var TestNameThree string = "testNameWithNumberIndex"
 var TestAttributeName string = "AttributeName"
 var TestAttributeNameTwo string = "AttributeNameAsWell"
 var TestAttributeValue string = "TestAttributeValue"
@@ -21,7 +22,8 @@ func SetupMockState() *deployment.TerraformState {
 	tags := map[string]interface{}{
 		"Tag1": "tag1Value",
 	}
-	var index1 json.Number = "Index1"
+	var index1 interface{} = "Index1"
+	var indexNumber interface{} = 0
 
 	attributes := deployment.StateResourceAttributes{
 		Id:       "AttributeID",
@@ -45,6 +47,11 @@ func SetupMockState() *deployment.TerraformState {
 		IndexKey:   nil,
 	}
 
+	resourceInstanceThree := deployment.StateResourceInstance{
+		Attributes: &attributesTwo,
+		IndexKey:   &indexNumber,
+	}
+
 	resource := deployment.StateResource{
 		Module:    TestModule,
 		Mode:      "managed",
@@ -63,8 +70,17 @@ func SetupMockState() *deployment.TerraformState {
 		Instances: []*deployment.StateResourceInstance{&resourceInstance},
 	}
 
+	resourceWithNumberIndex := deployment.StateResource{
+		Module:    TestModule,
+		Mode:      "managed",
+		Type:      TestTypeOne,
+		Name:      TestNameThree,
+		Provider:  "resourceProvider",
+		Instances: []*deployment.StateResourceInstance{&resourceInstanceThree},
+	}
+
 	state := deployment.TerraformState{
-		Resources: []*deployment.StateResource{&resource, &resourceSameType},
+		Resources: []*deployment.StateResource{&resource, &resourceSameType, &resourceWithNumberIndex},
 	}
 
 	return &state
@@ -95,7 +111,7 @@ func TestFindAllResourceTypeFindsTheAppropriateResources(t *testing.T) {
 	assert := assert.New(t)
 	testStruct := new(Deployment)
 	testStruct.State = SetupMockState()
-	expectedLength := 2
+	expectedLength := 3
 
 	foundResources := testStruct.FindAllResourceType(TestTypeOne)
 
@@ -145,7 +161,7 @@ func TestGetInstanceNamesReturnsTheCorrectNumberOfNames(t *testing.T) {
 	testStruct := new(Deployment)
 	testStruct.State = SetupMockState()
 	resources := testStruct.FindAllResourceType(TestTypeOne)
-	expectedLength := 3
+	expectedLength := 4
 
 	foundNames := testStruct.GetInstanceNames(resources)
 
