@@ -17,13 +17,13 @@ var TestAttributeName string = "AttributeName"
 var TestAttributeNameTwo string = "AttributeNameAsWell"
 var TestAttributeValue string = "TestAttributeValue"
 var TestAttributeValueTwo string = "TestAttributeValueTwo"
+var index1 interface{} = "Index1"
+var indexNumber interface{} = 0
 
 func SetupMockState() *deployment.TerraformState {
 	tags := map[string]interface{}{
 		"Tag1": "tag1Value",
 	}
-	var index1 interface{} = "Index1"
-	var indexNumber interface{} = 0
 
 	attributes := deployment.StateResourceAttributes{
 		Id:       "AttributeID",
@@ -214,6 +214,17 @@ func TestGetInstanceAttributeValuesOfResourceReturnsAsExpectedAmmountWithResourc
 
 	assert.Equalf(expectedLength, len(foundAttributes), "The length of returned value (%s) was longer than expected %s", len(foundAttributes), expectedLength)
 
+}
+
+func TestIndexKeysForStringsAsIndexFromMaps(t *testing.T) {
+	assert := assert.New(t)
+	testStruct := new(Deployment)
+	testStruct.State = SetupMockState()
+	resources := testStruct.FindByName(TestNameTwo)
+
+	for _, instance := range resources.Instances {
+		assert.Equalf(index1, instance.index, "Index key (%s) does not equal expected %s", instance.index, index1)
+	}
 }
 
 func TestGetInstanceAttributeValuesReturnsAttributes(t *testing.T) {
