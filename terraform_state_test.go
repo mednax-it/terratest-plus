@@ -222,9 +222,26 @@ func TestIndexKeysForStringsAsIndexFromMaps(t *testing.T) {
 	testStruct.State = SetupMockState()
 	resources := testStruct.FindByName(TestNameTwo)
 
-	for _, instance := range resources.Instances {
-		assert.Equalf(index1, instance.index, "Index key (%s) does not equal expected %s", instance.index, index1)
+	for key, resource := range resources {
+		for _, instance := range resource.Instances {
+			assert.Equalf(index1, *instance.IndexKey, "Index key (%s) in %s resource does not equal expected %s", *instance.IndexKey, key, index1)
+		}
 	}
+
+}
+
+func TestIndexKeysForNumbersAsIndexFromList(t *testing.T) {
+	assert := assert.New(t)
+	testStruct := new(Deployment)
+	testStruct.State = SetupMockState()
+	resources := testStruct.FindByName(TestNameThree)
+
+	for key, resource := range resources {
+		for _, instance := range resource.Instances {
+			assert.Equalf(indexNumber, *instance.IndexKey, "Index key (%s) in %s resource does not equal expected %s", *instance.IndexKey, key, indexNumber)
+		}
+	}
+
 }
 
 func TestGetInstanceAttributeValuesReturnsAttributes(t *testing.T) {
