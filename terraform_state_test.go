@@ -17,8 +17,8 @@ var TestAttributeName string = "AttributeName"
 var TestAttributeNameTwo string = "AttributeNameAsWell"
 var TestAttributeValue string = "TestAttributeValue"
 var TestAttributeValueTwo string = "TestAttributeValueTwo"
-var index1 interface{} = "Index1"
-var indexNumber interface{} = 0
+var index1 string = "Index1"
+var indexNumber int = 0
 
 func SetupMockState() *deployment.TerraformState {
 	tags := map[string]interface{}{
@@ -40,7 +40,7 @@ func SetupMockState() *deployment.TerraformState {
 
 	resourceInstance := deployment.StateResourceInstance{
 		Attributes: &attributes,
-		IndexKey:   &index1,
+		IndexKey:   index1,
 	}
 	resourceInstanceTwo := deployment.StateResourceInstance{
 		Attributes: &attributesTwo,
@@ -49,7 +49,7 @@ func SetupMockState() *deployment.TerraformState {
 
 	resourceInstanceThree := deployment.StateResourceInstance{
 		Attributes: &attributes,
-		IndexKey:   &indexNumber,
+		IndexKey:   indexNumber,
 	}
 
 	resource := deployment.StateResource{
@@ -224,7 +224,7 @@ func TestIndexKeysForStringsAsIndexFromMaps(t *testing.T) {
 
 	for key, resource := range resources {
 		for _, instance := range resource.Instances {
-			assert.Equalf(index1, *instance.IndexKey, "Index key (%s) in %s resource does not equal expected %s", *instance.IndexKey, key, index1)
+			assert.Equalf(index1, instance.IndexKey, "Index key (%s) in %s resource does not equal expected %s", instance.IndexKey, key, index1)
 		}
 	}
 
@@ -238,7 +238,7 @@ func TestIndexKeysForNumbersAsIndexFromList(t *testing.T) {
 
 	for key, resource := range resources {
 		for _, instance := range resource.Instances {
-			assert.Equalf(indexNumber, *instance.IndexKey, "Index key (%s) in %s resource does not equal expected %s", *instance.IndexKey, key, indexNumber)
+			assert.Equalf(indexNumber, instance.IndexKey.(int), "Index key (%s) in %s resource does not equal expected %s", instance.IndexKey.(int), key, indexNumber)
 		}
 	}
 
