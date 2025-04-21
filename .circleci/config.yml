@@ -4,7 +4,7 @@ version: 2.1
 executors:
   build-container:
     docker:
-      - image: mednax.azurecr.io/med_aks_terraform_runner-ubuntu18.04:4.6.0
+      - image: mednax.azurecr.io/med_aks_terraform_runner-ubuntu18.04:4.9.1
         auth:
           username: $REPO_USER
           password: $REPO_PW
