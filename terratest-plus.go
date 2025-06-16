@@ -141,9 +141,7 @@ func (d *Deployment) GetState() {
 	tf_get_state, err := terraform.RunTerraformCommandAndGetStdoutE(d.T, &d.TerraformOptions, "state", "pull")
 
 	tf_get_state = strings.ReplaceAll(tf_get_state, "\n", "")
-	tf_get_state = strings.ReplaceAll(tf_get_state, "\\", "")
-	tf_get_state = strings.ReplaceAll(tf_get_state, "[\"", "[")
-	tf_get_state = strings.ReplaceAll(tf_get_state, "\"]", "]")
+	tf_get_state = strings.ReplaceAll(tf_get_state, "\\\"", "'")
 
 	if err != nil {
 		logger.Logf(d.T, "Error pulling State file: %v", err)
