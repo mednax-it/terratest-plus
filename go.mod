@@ -1,6 +1,6 @@
 module github.com/mednax-it/terratest-plus
 
-go 1.24.4
+go 1.24
 
 require (
 	github.com/gruntwork-io/terratest v0.50.0
