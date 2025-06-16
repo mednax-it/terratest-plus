@@ -390,7 +390,7 @@ func (d *Deployment) CleanWorkspaceName() {
 LogWithColorF wraps around terratest terraform.logger.Log() but with color formatting for the string
 */
 func LogWithColor(t *testing.T, color bashColor.ColorCode, msg string) {
-	LogWithColorF(t, color, msg)
+	LogWithColorF(t, color, "%s", msg)
 }
 
 /* LogWIthColorF is a wrapper for logger.Logf combined with a bash color and string format verbs.
