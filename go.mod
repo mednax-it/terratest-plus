@@ -2,6 +2,8 @@ module github.com/mednax-it/terratest-plus
 
 go 1.24
 
+toolchain go1.24.4
+
 require (
 	github.com/gruntwork-io/terratest v0.50.0
 	github.com/perimeterx/marshmallow v1.1.5
